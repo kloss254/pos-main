@@ -1,0 +1,114 @@
+<?php
+// Database connection
+$conn = new mysqli("localhost", "root", "", "pos");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Query to fetch products and stock
+$products_sql = "SELECT product_name, stock FROM products";
+$products_result = $conn->query($products_sql);
+
+// Query to fetch order history (oldest first)
+$order_history_sql = "
+    SELECT p.product_name, o.quantity, o.created_at 
+    FROM orders o 
+    JOIN products p ON o.product_id = p.id 
+    ORDER BY o.created_at ASC
+";
+$order_history_result = $conn->query($order_history_sql);
+
+// Query to fetch latest 5 sales (newest first)
+$new_sales_sql = "
+    SELECT p.product_name, o.quantity, o.created_at 
+    FROM orders o 
+    JOIN products p ON o.product_id = p.id 
+    ORDER BY o.created_at DESC 
+    LIMIT 5
+";
+$new_sales_result = $conn->query($new_sales_sql);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POS Dashboard</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional: your CSS file -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div id="wrapper">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h1>POS Dashboard</h1>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-cash-register"></i> Sales</a></li>
+                <li><a href="#"><i class="fas fa-box"></i> Products</a></li>
+                <li><a href="#"><i class="fas fa-warehouse"></i> Inventory</a></li>
+                <li><a href="#"><i class="fas fa-truck"></i> Suppliers</a></li>
+                <li><a href="#"><i class="fas fa-tags"></i> Categories</a></li>
+                <li><a href="#"><i class="fas fa-receipt"></i> Orders</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <div id="main-content">
+            <header class="main-header">
+                <h2>Admin Stats</h2>
+                <div class="header-actions">
+                    <button class="action-btn"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="action-btn primary-btn"><i class="fas fa-plus"></i> Add Widget</button>
+                </div>
+            </header>
+
+            <main>
+                <section id="dashboard">
+                    <h2>Dashboard</h2>
+                    <div class="dashboard-cards">
+
+                        <!-- Products Available -->
+                        <div class="card">
+                            <h3>📦 Products Available</h3>
+                            <ul>
+                                <?php while ($row = $products_result->fetch_assoc()): ?>
+                                    <li><?= htmlspecialchars($row['product_name']) ?> — <strong><?= htmlspecialchars($row['stock']) ?> in stock</strong></li>
+                                <?php endwhile; ?>
+                            </ul>
+                        </div>
+
+                        <!-- Order History (Oldest First) -->
+                        <div class="card">
+                            <h3>📈 Order History</h3>
+                            <ul>
+                                <?php while ($row = $order_history_result->fetch_assoc()): ?>
+                                    <li><?= htmlspecialchars($row['product_name']) ?> — Qty: <?= htmlspecialchars($row['quantity']) ?> — <em><?= htmlspecialchars($row['created_at']) ?></em></li>
+                                <?php endwhile; ?>
+                            </ul>
+                        </div>
+
+                        <!-- New Sales (Latest First) -->
+                        <div class="card">
+                            <h3>🛒 New Sales</h3>
+                            <ul>
+                                <?php while ($row = $new_sales_result->fetch_assoc()): ?>
+                                    <li><?= htmlspecialchars($row['product_name']) ?> — Qty: <?= htmlspecialchars($row['quantity']) ?> — <strong><?= htmlspecialchars($row['created_at']) ?></strong></li>
+                                <?php endwhile; ?>
+                            </ul>
+                        </div>
+
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+
+<?php
+$conn->close();
+?>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS Cashier Terminal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="cashier-styles.css" />
+    <script>
+        // Basic login check for cashier page
+        if (localStorage.getItem("loggedIn") !== "true" || localStorage.getItem("currentUserRole") !== "cashier") {
+            window.location.href = "login.html";
+        }
+    </script>
+</head>
+<body>
+    <div id="cashier-app">
+        <aside class="cashier-sidebar">
+            <div class="logo">
+                <img src="logo.png" alt="POS Logo"> <span>POS</span>
+            </div>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li><a href="#" class="sidebar-link active" id="sales-link-cashier"><i class="fas fa-th-large"></i> Menu</a></li>
+                    <li><a href="#" class="sidebar-link" id="table-services-link"><i class="fas fa-concierge-bell"></i> Table Services</a></li>
+                    <li><a href="#" class="sidebar-link" id="reservation-link"><i class="fas fa-clipboard-list"></i> Reservation</a></li>
+                    <li><a href="#" class="sidebar-link" id="delivery-link"><i class="fas fa-truck"></i> Delivery</a></li>
+                    <li><a href="#" class="sidebar-link" id="accounting-link"><i class="fas fa-calculator"></i> Accounting</a></li>
+                    <li><a href="#" class="sidebar-link" id="settings-link"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+            <div class="user-cards">
+                <div class="user-card active">
+                    <span class="initials">DJ</span>
+                    <div class="user-details">
+                        <span class="name">Dilys Joy</span>
+                        <span class="role">Cashier</span>
+                    </div>
+                </div>
+                <div class="user-card">
+                    <span class="initials">FLO</span>
+                    <div class="user-details">
+                        <span class="name">Florence</span>
+                        <span class="role">Cashier</span>
+                    </div>
+                </div>
+            </div>
+            <a href="#" onclick="logout()" class="sidebar-logout" id="cashier-logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </aside>
+
+        <main class="cashier-main-content">
+            <header class="cashier-header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="product-search" placeholder="Search product here..." />
+                </div>
+                <div class="header-icons">
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-envelope"></i>
+                    <div class="user-avatar"></div>
+                </div>
+            </header>
+
+            <section id="sales-section-cashier" class="cashier-content-section active">
+                <div class="sales-area">
+                    <div class="sales-panel products-section">
+                        <div class="categories-nav">
+                            <button class="category-btn active" data-category="All">All<span>235 Items</span></button>
+                            <button class="category-btn" data-category="Breakfast">Breakfast<span>19 Items</span></button>
+                            <button class="category-btn" data-category="Soups">Soups<span>6 Items</span></button>
+                            <button class="category-btn" data-category="Pasta">Pasta<span>14 Items</span></button>
+                            <button class="category-btn" data-category="Main Course">Main Course<span>67 Items</span></button>
+                        </div>
+
+                        <div id="product-list-cashier" class="product-grid">
+                            </div>
+                    </div>
+
+                    <div class="sales-panel cart-section">
+                        <div class="cart-header">
+                            <h3>Current Order</h3>
+                            <button class="clear-cart-btn"><i class="fas fa-trash"></i> Clear</button>
+                        </div>
+
+                        <ul id="cart-list-cashier" class="cart-items">
+                            </ul>
+
+                        <div class="customer-info-and-total">
+                            <div class="customer-info-group">
+                                <label for="customer-name">Customer Name:</label>
+                                <input type="text" id="customer-name" placeholder="Name" />
+                                <label for="customer-phone">Customer Phone:</label>
+                                <input type="text" id="customer-phone" placeholder="Phone" />
+                            </div>
+
+                            <div class="cart-summary-line">
+                                <span>Subtotal</span>
+                                <span>$<span id="subtotal-cashier">0.00</span></span>
+                            </div>
+                            <div class="cart-summary-line">
+                                <span>Tax (5%)</span>
+                                <span>$<span id="tax-cashier">0.00</span></span>
+                            </div>
+                            <div class="cart-summary-line total-line">
+                                <span>Total</span>
+                                <span>$<span id="total-cashier">0.00</span></span>
+                            </div>
+                        </div>
+
+                        <div class="payment-options">
+                            <button class="payment-method-btn active"><i class="fas fa-money-bill-wave"></i> Cash</button>
+                            <button class="payment-method-btn"><i class="fas fa-credit-card"></i> Card</button>
+                            <button class="payment-method-btn"><i class="fas fa-qrcode"></i> QR</button>
+                            <button class="payment-method-btn"><i class="fas fa-wallet"></i> Wallet</button>
+                            <button class="payment-method-btn"> Mpesa</button>
+                        </div>
+
+                        <div class="checkout-actions">
+                            <button id="cashier-checkout-btn" class="complete-sale-btn"><i class="fas fa-dollar-sign"></i> Complete Sale</button>
+                            <button class="hold-order-btn"><i class="fas fa-pause-circle"></i> Hold Order</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="table-services-section" class="cashier-content-section" style="display: none;">
+                <h2>Table Services Management</h2>
+                <p>This section will contain UI for managing tables, assigning orders to tables, etc.</p>
+                </section>
+
+            <section id="reservation-section" class="cashier-content-section" style="display: none;">
+                <h2>Reservation Management</h2>
+                <p>This section will handle customer reservations, booking, and scheduling.</p>
+                </section>
+
+            <section id="delivery-section" class="cashier-content-section" style="display: none;">
+                <h2>Delivery Order Management</h2>
+                <p>This section will display and manage delivery orders, couriers, and delivery status.</p>
+                </section>
+
+            <section id="accounting-section" class="cashier-content-section" style="display: none;">
+                <h2>Cashier Accounting Summary</h2>
+                <p>This section will show daily sales summaries, cash in/out, and cashier reports.</p>
+                </section>
+
+            <section id="settings-section" class="cashier-content-section" style="display: none;">
+                <h2>Cashier Settings</h2>
+                <p>This section allows cashiers to adjust personal preferences or terminal settings.</p>
+                </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

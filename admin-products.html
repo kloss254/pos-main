@@ -1,0 +1,126 @@
+<?php
+// Database connection
+$conn = new mysqli("localhost", "root", "", "pos");
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Fetch products from the table `product`
+$sql = "SELECT id, product_name, price, stock, image, tax, created_at FROM product ORDER BY created_at DESC";
+$result = $conn->query($sql);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS System Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        table th, table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+        .product-img {
+            width: 50px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h1>POS Dashboard</h1>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="admin-dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="admin-sales.html"><i class="fas fa-cash-register"></i> Sales</a></li>
+                <li><a href="admin-products.html"><i class="fas fa-box"></i> Products</a></li>
+                <li><a href="admin-inventory.html"><i class="fas fa-warehouse"></i> Inventory</a></li>
+                <li><a href="admin-suppliers.html"><i class="fas fa-truck"></i> Suppliers</a></li>
+                <li><a href="admin-categories.html"><i class="fas fa-tags"></i> Categories</a></li>
+                <li><a href="admin-orders.html"><i class="fas fa-receipt"></i> Orders</a></li>
+                <li><a href="admin-reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                <li><a href="admin-logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <div id="main-content">
+            <header class="main-header">
+                <h2>Admin Stats</h2>
+                <div class="header-actions">
+                    <button class="action-btn"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="action-btn primary-btn"><i class="fas fa-plus"></i> Add Widget</button>
+                </div>
+            </header>
+
+            <main>
+                <section id="products">
+                    <h2>Product Inventory</h2>
+
+                    <form>
+                        <input type="text" placeholder="Product Name" required />
+                        <input type="text" placeholder="Category" required />
+                        <input type="number" placeholder="Price" step="0.01" required />
+                        <input type="number" placeholder="Stock" required />
+                        <button type="submit">Add Product</button>
+                    </form>
+
+                    <h3>Product List</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Tax</th>
+                                <th>Stock</th>
+                                <th>Image</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($result && $result->num_rows > 0): ?>
+                                <?php while ($row = $result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?= $row['id'] ?></td>
+                                        <td><?= htmlspecialchars($row['product_name']) ?></td>
+                                        <td>KES <?= number_format($row['price']) ?></td>
+                                        <td><?= htmlspecialchars($row['tax']) ?>%</td>
+                                        <td><?= htmlspecialchars($row['stock']) ?></td>
+                                        <td>
+                                            <img src="<?= htmlspecialchars($row['image']) ?>" alt="Image" class="product-img">
+                                        </td>
+                                        <td><?= htmlspecialchars($row['created_at']) ?></td>
+                                        <td>
+                                            <button>Edit</button>
+                                            <button>Delete</button>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr><td colspan="8">No products available.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </section>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+
+<?php $conn->close(); ?>
