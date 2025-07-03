@@ -1,0 +1,849 @@
+/* General Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f2f5; 
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px; /* Padding around the main app container */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* --- Cashier App Container --- */
+#cashier-app {
+    display: flex;
+    width: 100%;
+    max-width: 1400px; /* Wider to accommodate the layout */
+    background-color: #fcfdfe; /* Off-white for the main background */
+    border-radius: 18px; /* More pronounced rounded corners */
+    overflow: hidden;
+    min-height: 90vh; /* Make sure it takes up significant height */
+}
+
+/* --- Left Sidebar (cashier-sidebar) --- */
+.cashier-sidebar {
+    width: 280px; /* Fixed width */
+    background-color: #ffffff; /* White background for sidebar */
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid #e0e6ed;
+
+}
+
+.cashier-sidebar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.cashier-sidebar .logo img {
+    width: 50px; /* Adjust logo size */
+    height: 50px;
+    border-radius: 12px;
+}
+
+.cashier-sidebar .logo span {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.cashier-sidebar .sidebar-menu {
+    flex-grow: 1; /* Pushes logout to bottom */
+    width: 100%;
+}
+
+.cashier-sidebar .sidebar-menu ul li {
+    margin-bottom: 10px;
+}
+
+
+.cashier-sidebar .sidebar-menu ul li a i {
+    font-size: 1.3em;
+    color: #fff; /* Lighter icon color */
+}
+
+.cashier-sidebar .sidebar-menu ul li a.active {
+    background-color: #007bff; /* Primary blue active background */
+    color: white;
+}
+
+
+
+/* User Cards */
+.cashier-sidebar .user-cards {
+    width: 100%;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.cashier-sidebar .user-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: #ecf0f1; /* Light grey background */
+    padding: 12px 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+.cashier-sidebar .user-card.active {
+    background-color: #007bff; /* Active user background */
+    color: white;
+}
+.cashier-sidebar .user-card.active .initials {
+    background-color: white;
+    color: #007bff;
+}
+.cashier-sidebar .user-card.active .name,
+.cashier-sidebar .user-card.active .role {
+    color: white;
+}
+
+
+.cashier-sidebar .user-card .initials {
+    width: 40px;
+    height: 40px;
+    background-color: #3498db; /* Blue for initials */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.cashier-sidebar .user-card .user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.cashier-sidebar .user-card .user-details .name {
+    font-weight: 600;
+    font-size: 1em;
+    color: #333;
+}
+
+.cashier-sidebar .user-card .user-details .role {
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+/* Sidebar Logout */
+.cashier-sidebar .sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    color: #e74c3c; /* Red for logout */
+    font-size: 1.1em;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    justify-content: flex-start;
+}
+.cashier-sidebar .sidebar-logout i {
+    font-size: 1.3em;
+    color: #e74c3c;
+}
+.cashier-sidebar .sidebar-logout:hover {
+    background-color: #fcebeb; /* Light red hover */
+    color: #c0392b;
+}
+
+
+/* --- Main Content Area (cashier-main-content) --- */
+.cashier-main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 30px; /* Overall padding */
+}
+
+/* Header */
+.cashier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.cashier-header .search-bar {
+    position: relative;
+    width: 400px; /* Specific width for search bar */
+}
+
+.cashier-header .search-bar i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+    font-size: 1.1em;
+}
+
+.cashier-header .search-bar input {
+    width: 100%;
+    padding: 12px 15px 12px 45px; /* Adjust padding for icon */
+    border: 1px solid #dfe6e9;
+    border-radius: 12px;
+    background-color: #f8f9fa; /* Lighter background for search */
+    font-size: 1em;
+    color: #333;
+}
+
+.cashier-header .search-bar input::placeholder {
+    color: #b0b4b8;
+}
+
+.cashier-header .search-bar input:focus {
+    border-color: #007bff;
+}
+
+.cashier-header .header-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.cashier-header .header-icons i {
+    font-size: 1.4em;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.cashier-header .header-icons i:hover {
+    color: #34495e;
+}
+
+.cashier-header .user-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #3498db; /* Example avatar color */
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+/* Sales Area (Left & Right Panels) */
+.sales-area {
+    display: flex;
+    gap: 30px; /* Space between product and cart sections */
+    flex-grow: 1;
+}
+
+.sales-panel {
+    background-color: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e0e6ed;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Products Section (Left) */
+.products-section {
+    flex: 3; /* More space for products */
+}
+
+.categories-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* Allow categories to wrap */
+}
+
+.categories-nav .category-btn {
+    background-color: #ecf0f1; /* Light grey background */
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+}
+
+.categories-nav .category-btn span {
+    font-size: 0.75em;
+    color: #7f8c8d;
+}
+
+.categories-nav .category-btn.active {
+    background-color: #007bff; /* Blue for active category */
+    color: white;
+}
+.categories-nav .category-btn.active span {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.categories-nav .category-btn:hover:not(.active) {
+    background-color: #dfe9f2;
+}
+
+/* Product Grid */
+#product-list-cashier.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Larger minimum product size */
+    gap: 20px;
+    flex-grow: 1;
+    overflow-y: auto; /* Scroll for product list */
+    padding-right: 10px; /* Space for scrollbar */
+}
+
+.product-card {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    border: 1px solid #e0e6ed;
+    transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    width: 100%;
+    height: 120px; /* Fixed height for product images */
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.product-card .price-tag {
+    background-color: #ffc107; /* Yellow tag */
+    color: #333;
+    font-size: 0.8em;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 5px;
+    position: absolute; /* Position over image */
+    top: 5px;
+    left: 5px;
+    z-index: 1;
+}
+
+.product-card h4 {
+    font-size: 1em;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    height: 2.4em; /* Limit height for two lines of text */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.product-card .product-details {
+    font-size: 0.85em;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.product-card .price {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #007bff; /* Blue for price */
+    margin-bottom: 15px;
+}
+
+.product-card .add-to-dish-btn {
+    background-color: #28a745; /* Green add button */
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9em;
+    width: 80%; /* Smaller button width */
+}
+.product-card .add-to-dish-btn:hover {
+    background-color: #218838;
+}
+
+/* Product Card with Quantity Controls (for items already in cart or directly adding quantity) */
+.product-card.with-quantity {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid #e0e6ed;
+}
+
+.product-card.with-quantity .product-info {
+    width: 100%;
+    text-align: center;
+}
+
+.product-card.with-quantity .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.product-card.with-quantity .quantity-controls button {
+    background-color: #007bff;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+.product-card.with-quantity .quantity-controls button:hover {
+    background-color: #0056b3;
+}
+
+.product-card.with-quantity .quantity-controls span {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin: 0 10px;
+    color: #2c3e50;
+}
+
+
+/* --- Cart Section (Right) --- */
+.cart-section {
+    flex: 2; /* Less space for cart */
+    min-width: 380px; /* Minimum width for cart section */
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.cart-header h3 {
+    margin: 0;
+    font-size: 1.6em;
+    color: #2c3e50;
+}
+
+.cart-header .clear-cart-btn {
+    background-color: #f2f4f7; /* Light grey */
+    color: #7f8c8d;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.cart-header .clear-cart-btn:hover {
+    background-color: #dfe4e8;
+    color: #34495e;
+}
+
+/* Cart Items List */
+#cart-list-cashier.cart-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-bottom: 20px; /* Space before customer info */
+}
+
+.cart-items .cart-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.cart-items .cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-items .cart-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.cart-items .cart-item-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-items .cart-item-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1em;
+    line-height: 1.3;
+}
+
+.cart-items .cart-item-price {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin-top: 3px;
+}
+
+.cart-items .cart-item-quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto; /* Push to right */
+}
+
+.cart-items .cart-item-quantity-controls button {
+    background-color: #f0f2f5; /* Light grey for quantity buttons */
+    color: #555;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.cart-items .cart-item-quantity-controls button:hover {
+    background-color: #dfe4e8;
+}
+
+.cart-items .cart-item-quantity-controls .quantity {
+    font-size: 1em;
+    font-weight: 600;
+    color: #2c3e50;
+    width: 25px; /* Fixed width for quantity number */
+    text-align: center;
+}
+
+.cart-items .cart-item-remove {
+    color: #e74c3c; /* Red for remove button */
+    font-size: 1.1em;
+    padding: 5px;
+    border-radius: 5px;
+}
+.cart-items .cart-item-remove:hover {
+    background-color: #fcebeb;
+}
+
+/* Customer Info and Total */
+.customer-info-and-total {
+    padding: 20px 0;
+    border-top: 1px solid #ecf0f1;
+    margin-top: auto; /* Pushes to bottom */
+}
+
+.customer-info-group {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for name and phone */
+    gap: 15px;
+}
+
+.customer-info-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+    grid-column: span 2; /* Label spans both columns */
+}
+.customer-info-group input {
+    margin-bottom: 0; /* Remove default input margin */
+}
+
+.cart-summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1em;
+    color: #555;
+}
+
+.cart-summary-line span:first-child {
+    font-weight: 500;
+}
+
+.cart-summary-line.total-line {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #dfe6e9;
+}
+.cart-summary-line.total-line #total-cashier {
+    color: #007bff; /* Blue for total price */
+}
+
+/* Payment Options */
+.payment-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+}
+
+.payment-method-btn {
+    flex: 1; /* Distribute space equally */
+    background-color: #ecf0f1;
+    color: #555;
+    padding: 12px 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9em;
+    display: flex;
+    flex-direction: column; /* Stack icon and text */
+    align-items: center;
+    gap: 5px;
+}
+
+.payment-method-btn i {
+    font-size: 1.5em;
+    color: #7f8c8d;
+}
+
+.payment-method-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+.payment-method-btn.active i {
+    color: white;
+}
+.payment-method-btn:hover:not(.active) {
+    background-color: #dfe4e8;
+}
+
+/* Checkout Actions */
+.checkout-actions {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Complete Sale is wider */
+    gap: 15px;
+}
+
+.complete-sale-btn {
+    background-color: #28a745; /* Green for complete sale */
+    color: white;
+    padding: 18px 20px;
+    border-radius: 12px;
+    font-size: 1.2em;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.complete-sale-btn:hover {
+    background-color: #218838;
+}
+
+.hold-order-btn {
+    background-color: #ffc107; /* Yellow for hold order */
+    color: #333;
+    padding: 18px 10px;
+    border-radius: 12px;
+    font-size: 1.2em;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.hold-order-btn:hover {
+    background-color: #e0a800;
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1200px) {
+    #cashier-app {
+        flex-direction: column; /* Stack sidebar and main content */
+        max-width: 95%;
+        margin: 10px auto;
+    }
+    .cashier-sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row; /* Horizontal layout for sidebar elements */
+        justify-content: space-around;
+        align-items: center;
+        padding: 20px;
+        border-right: none;
+        border-bottom: 1px solid #e0e6ed;
+    }
+    .cashier-sidebar .logo {
+        margin-bottom: 0;
+    }
+    .cashier-sidebar .sidebar-menu {
+        flex-grow: 0;
+        margin-left: 20px; /* Space from logo */
+    }
+    .cashier-sidebar .sidebar-menu ul {
+        display: flex; /* Horizontal menu items */
+        gap: 15px;
+    }
+    .cashier-sidebar .sidebar-menu ul li {
+        margin-bottom: 0;
+    }
+    .cashier-sidebar .sidebar-menu ul li a {
+        padding: 10px 15px;
+        font-size: 1em;
+        border-radius: 8px;
+    }
+    .cashier-sidebar .user-cards {
+        display: none; /* Hide user cards on smaller screens for simplicity */
+    }
+    .cashier-sidebar .sidebar-logout {
+        margin-left: 20px;
+        padding: 10px 15px;
+        font-size: 1em;
+        width: auto;
+    }
+    .cashier-main-content {
+        padding: 20px;
+    }
+    .sales-area {
+        flex-direction: column; /* Stack product and cart sections */
+        gap: 20px;
+    }
+    .sales-panel {
+        flex: none;
+        min-width: unset;
+    }
+    .cart-section {
+        order: -1; /* Place cart section above products on smaller screens */
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    #cashier-app {
+        border-radius: 10px;
+    }
+    .cashier-sidebar {
+        flex-direction: column; /* Stack sidebar items vertically again */
+        align-items: flex-start;
+        padding: 15px;
+    }
+    .cashier-sidebar .logo {
+        margin-bottom: 15px;
+    }
+    .cashier-sidebar .sidebar-menu {
+        width: 100%;
+        margin-left: 0;
+    }
+    .cashier-sidebar .sidebar-menu ul {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 5px;
+    }
+    .cashier-sidebar .sidebar-menu ul li a {
+        width: 100%;
+        padding: 10px;
+    }
+    .cashier-sidebar .sidebar-logout {
+        margin-left: 0;
+        margin-top: 15px;
+        width: 100%;
+    }
+    .cashier-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    .cashier-header .search-bar {
+        width: 100%;
+    }
+    .sales-area {
+        gap: 15px;
+    }
+    .product-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    .product-card img {
+        height: 100px;
+    }
+    .payment-options {
+        flex-wrap: wrap; /* Allow payment buttons to wrap */
+    }
+    .payment-method-btn {
+        flex-basis: 48%; /* Roughly two per row */
+        padding: 10px;
+    }
+    .checkout-actions {
+        grid-template-columns: 1fr; /* Stack checkout buttons */
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    .cashier-main-content {
+        padding: 15px;
+    }
+    .cashier-sidebar .logo span {
+        font-size: 1.5em;
+    }
+    .cashier-header .header-icons {
+        align-self: flex-end; /* Push icons to the right */
+    }
+    .product-grid {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+}
