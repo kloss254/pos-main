@@ -22,7 +22,7 @@ $consumerKey = "1n1TXMzll0HUSEEV1ItqgZvAQph1DGJMIyrSHrxSVI3Njml6";
 $consumerSecret = "F1qt3ip2O8lQU5c7Sh4IvJrJoihoxkPd31WDnnpzl4JG8UKHfPUIqZQIRW0iuQ0z";
 $BusinessShortCode = "174379";
 $Passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919";
-$callbackurl = "https://y3hdqnnih6.sharedwithexpose.com/api/mpesa/callback.php";
+$callbackurl = "https://7oqeyk6clb.sharedwithexpose.com/api/mpesa/callback.php";
 
 // ✅ Step 3: Generate Access Token
 $credentials = base64_encode($consumerKey . ':' . $consumerSecret);

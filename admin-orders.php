@@ -68,7 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $new_status = $conn->real_escape_string($_POST['status']);
 
     // Get current status and payment method
-    $res = $conn->query("SELECT payment_method, status, product_id, quantity FROM orders WHERE order_id = $order_id");
+$res = $conn->query("
+    SELECT o.payment_method, o.status, oi.product_id, oi.quantity
+    FROM orders o
+    JOIN order_items oi ON o.id = oi.order_id
+    WHERE o.id = $order_id
+");
+
     if ($res && $res->num_rows > 0) {
         $row = $res->fetch_assoc();
         $payment_method = $row['payment_method'];
@@ -89,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
             }
 
             // Update order status
-            $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+           $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
             $stmt->bind_param("si", $new_status, $order_id);
             $stmt->execute();
             $stmt->close();
@@ -422,47 +428,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                 $filters[] = "discounts = 0";
                             }
                             $where = $filters ? "WHERE " . implode(" AND ", $filters) : "";
+$result = $conn->query("
+SELECT o.id AS order_id, o.customer_name, o.customer_phone, o.payment_method, o.user_id, o.created_at, o.discount_amount,
+           oi.quantity, p.product_name, p.price, p.tax, p.image
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
+    $where
+    ORDER BY o.created_at DESC
+");
 
-                            $result = $conn->query("
-                                SELECT o.*, p.product_name, p.price, p.tax, p.image 
-                                FROM orders o
-                                JOIN products p ON o.product_id = p.id
-                                $where
-                                ORDER BY o.created_at DESC
-                            ");
 
-                            while ($row = $result->fetch_assoc()) {
-                                $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
-                                $total_tax = $row['quantity'] * $row['tax'];
 
-                                echo "<tr>
-                                    <td>{$row['order_id']}</td>
-                                    <td>{$row['product_name']}</td>
-                                    <td>{$row['customer_name']}</td>
-                                    <td>{$row['customer_phone']}</td>
-                                    <td>{$row['quantity']}</td>
-                                    <td>
-                                        <form method='POST' style='display:inline-flex; gap:4px;'>
-                                            <input type='hidden' name='update_payment' value='1'>
-                                            <input type='hidden' name='order_id' value='{$row['order_id']}'>
-                                            <select name='payment_method' onchange='this.form.submit()'>
-                                                <option value='Mpesa' " . ($row['payment_method'] === 'Mpesa' ? 'selected' : '') . ">Mpesa</option>
-                                                <option value='Cash' " . ($row['payment_method'] === 'Cash' ? 'selected' : '') . ">Cash</option>
-                                                <option value='Unpaid' " . ($row['payment_method'] === 'Unpaid' ? 'selected' : '') . ">Unpaid</option>
-                                            </select>
-                                        </form>
-                                    </td>
-                                    <td>{$row['user_id']}</td>
-                                    <td>{$row['discounts']}</td>
-                                    <td>{$row['product_name']}</td>
-                                    <td> {$row['price']}</td>
-                                    <td>{$row['tax']}%</td>
-                                    <td>{$total_price}</td>
-                                    <td>{$total_tax}</td>
-                                    <td><img src='uploads/{$row['image']}' alt='Product Image' style='width:40px; height:auto;'></td>
-                                    <td>{$row['created_at']}</td>
-                                </tr>";
-                            }
+while ($row = $result->fetch_assoc()) {
+    // Use correct discount column
+    $discount = isset($row['discount_amount']) ? $row['discount_amount'] : 0;
+    $quantity = $row['quantity'];
+    $price = $row['price'];
+    $tax = $row['tax'];
+    
+    // Correct price and tax calculations
+    $total_price = ($quantity * $price) - $discount;
+    $total_tax = $quantity * $tax;
+
+    echo "<tr>
+        <td>{$row['order_id']}</td>
+        <td>{$row['product_name']}</td>
+        <td>{$row['customer_name']}</td>
+        <td>{$row['customer_phone']}</td>
+        <td>{$quantity}</td>
+        <td>
+            <form method='POST' style='display:inline-flex; gap:4px;'>
+                <input type='hidden' name='update_payment' value='1'>
+                <input type='hidden' name='order_id' value='{$row['order_id']}'>
+                <select name='payment_method' onchange='this.form.submit()'>
+                    <option value='Mpesa' " . ($row['payment_method'] === 'Mpesa' ? 'selected' : '') . ">Mpesa</option>
+                    <option value='Cash' " . ($row['payment_method'] === 'Cash' ? 'selected' : '') . ">Cash</option>
+                    <option value='Unpaid' " . ($row['payment_method'] === 'Unpaid' ? 'selected' : '') . ">Unpaid</option>
+                </select>
+            </form>
+        </td>
+        <td>{$row['user_id']}</td>
+        <td>{$discount}</td>
+        <td>{$row['price']}</td>
+        <td>{$row['tax']}%</td>
+        <td>{$total_price}</td>
+        <td>{$total_tax}</td>
+        <td><img src='uploads/{$row['image']}' alt='Product Image' style='width:40px; height:auto;'></td>
+        <td>{$row['created_at']}</td>
+    </tr>";
+}
+
+                            
                             ?>
                         </tbody>
                     </table>
@@ -491,20 +508,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         <tbody>
                             <?php
                             $unpaid = $conn->query("
-                                SELECT o.*, p.product_name, p.price, p.tax, p.image 
-                                FROM orders o
-                                JOIN products p ON o.product_id = p.id
-                                WHERE o.payment_method = 'Unpaid'
-                                ORDER BY o.created_at DESC
-                            ");
+    SELECT o.id AS order_id, o.customer_name, o.customer_phone, o.payment_method, o.user_id, o.created_at, o.discount_amount,
+           oi.quantity, p.product_name, p.price, p.tax, p.image
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
+    WHERE o.payment_method = 'Unpaid'
+    ORDER BY o.created_at DESC
+");
+
                             while ($row = $unpaid->fetch_assoc()) {
-                                $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
+                                $total_price = ($row['quantity'] - $row['discount_amount']) * $row['price'];
                                 $total_tax = $row['quantity'] * $row['tax'];
 
                                 echo "<tr>
                                     <td>{$row['order_id']}</td>
                                     <td>{$row['product_name']}</td>
-                                    <td>{$row['customer_name']}</td>
+                                    <td>{$row['customer_name']}</td>S
                                     <td>{$row['customer_phone']}</td>
                                     <td>{$row['quantity']}</td>
                                     <td>
@@ -519,7 +539,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                         </form>
                                     </td>
                                     <td>{$row['user_id']}</td>
-                                    <td>{$row['discounts']}</td>
+                                    <td>{$row['discount_amountS']}</td>
                                     <td>{$row['product_name']}</td>
                                     <td>{$row['price']}</td>
                                     <td>{$row['tax']}%</td>
@@ -546,15 +566,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                             <?php
                             $conn = new mysqli("localhost", "root", "", "pos");
                             if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
-                            $pending = $conn->query("
-                                SELECT o.*, p.product_name, p.price, p.tax, p.image 
-                                FROM orders o
-                                JOIN products p ON o.product_id = p.id
-                                WHERE o.status = 'pending'
-                                ORDER BY o.created_at DESC
-                            ");
+                           $pending = $conn->query("
+    SELECT o.id AS order_id, o.customer_name, o.customer_phone, o.payment_method, o.user_id, o.status, o.created_at, o.discount_amount,
+           oi.quantity, p.product_name, p.price, p.tax, p.image
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
+    WHERE o.status = 'pending'
+    ORDER BY o.created_at DESC
+");
+
                             while ($row = $pending->fetch_assoc()) {
-                                $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
+                                $total_price = ($row['quantity'] - $row['discount_amount']) * $row['price'];
                                 $total_tax = $row['quantity'] * $row['tax'];
                                 echo "<tr>
                                     <td>{$row['order_id']}</td>
@@ -574,7 +597,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                                         </form>
                                     </td>
                                     <td>{$row['user_id']}</td>
-                                    <td>{$row['discounts']}</td>
+                                    <td>{$row['discount_amount']}</td>
                                     <td>{$row['price']}</td>
                                     <td>{$row['tax']}%</td>
                                     <td>{$total_price}</td>
@@ -609,15 +632,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         </thead>
                         <tbody>
                             <?php
-                            $cancelled = $conn->query("
-                                SELECT o.*, p.product_name, p.price, p.tax, p.image 
-                                FROM orders o
-                                JOIN products p ON o.product_id = p.id
-                                WHERE o.status = 'cancelled'
-                                ORDER BY o.created_at DESC
-                            ");
+                           $cancelled = $conn->query("
+    SELECT o.id AS order_id, o.customer_name, o.customer_phone, o.payment_method, o.user_id, o.status, o.created_at, o.discount_amount,
+           oi.quantity, p.product_name, p.price, p.tax, p.image
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
+    WHERE o.status = 'cancelled'
+    ORDER BY o.created_at DESC
+");
+
                             while ($row = $cancelled->fetch_assoc()) {
-                                $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
+                                $total_price = ($row['quantity'] - $row['discount']) * $row['price'];
                                 $total_tax = $row['quantity'] * $row['tax'];
                                 echo "<tr>
                                     <td>{$row['order_id']}</td>

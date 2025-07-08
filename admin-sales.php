@@ -354,18 +354,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $filters[] = "DATE(o.created_at) = '" . $conn->real_escape_string($_GET['created_date']) . "'";
                                 }
                                 if (isset($_GET['no_discount']) && $_GET['no_discount'] == '1') {
-                                    $filters[] = "discounts = 0";
-                                }
+    $filters[] = "oi.discount = 0";
+}
 
-                                $where = "WHERE " . implode(" AND ", $filters);
 
-                                $result = $conn->query("
-                                    SELECT o.*, p.product_name, p.price, p.tax, p.image 
-                                    FROM orders o
-                                    JOIN products p ON o.product_id = p.id
-                                    $where
-                                    ORDER BY o.created_at DESC
-                                ");
+                               $where = $filters ? "WHERE " . implode(" AND ", $filters) : "";
+$result = $conn->query("
+    SELECT o.*, oi.product_id, oi.quantity, oi.discount, p.product_name, p.price, p.tax, p.image 
+    FROM orders o
+    JOIN order_items oi ON o.id = oi.order_id
+    JOIN products p ON oi.product_id = p.id
+    $where
+    ORDER BY o.created_at DESC
+");
 
                                 $total_revenue = 0;
                                 $total_tax_sum = 0;

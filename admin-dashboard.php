@@ -10,23 +10,27 @@ $products_sql = "SELECT product_name, stock FROM products";
 $products_result = $conn->query($products_sql);
 
 // Fetch order history (oldest first)
+// Order History (oldest first)
 $order_history_sql = "
-    SELECT p.product_name, o.quantity, o.created_at
-    FROM orders o
-    JOIN products p ON o.product_id = p.id
+    SELECT p.product_name, oi.quantity, o.created_at
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
     ORDER BY o.created_at ASC
 ";
 $order_history_result = $conn->query($order_history_sql);
 
-// Fetch latest 5 sales (newest first)
+// New Sales (latest 5)
 $new_sales_sql = "
-    SELECT p.product_name, o.quantity, o.created_at
-    FROM orders o
-    JOIN products p ON o.product_id = p.id
+    SELECT p.product_name, oi.quantity, o.created_at
+    FROM order_items oi
+    JOIN orders o ON oi.order_id = o.id
+    JOIN products p ON oi.product_id = p.id
     ORDER BY o.created_at DESC
     LIMIT 5
 ";
 $new_sales_result = $conn->query($new_sales_sql);
+
 
 // Convert results to arrays to allow multiple iterations
 $products_data = [];
@@ -69,9 +73,11 @@ if ($new_sales_result && $new_sales_result->num_rows > 0) {
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        .low-stock {
-            color: red;
-            font-weight: bold;
+     .low-stock {
+    color: #1E90FF; /* Dodger Blue */
+    font-weight: bold;
+}
+
         }
         .dropdown {
             position: relative;
@@ -145,6 +151,16 @@ if ($new_sales_result && $new_sales_result->num_rows > 0) {
             background-color: #3e556e;
             color: #fff;
         }
+        .btn-primary {
+    background-color: #1E90FF;
+    border-color: #1E90FF;
+}
+
+.btn-primary:hover {
+    background-color: #1C86EE;
+    border-color: #1C86EE;
+}
+
     </style>
 </head>
 <body>
@@ -158,8 +174,27 @@ if ($new_sales_result && $new_sales_result->num_rows > 0) {
                 <li><a href="admin-orders.php" ><i class="fas fa-receipt"></i> Orders</a></li>
                 <li><a href="admin-sales.php" ><i class="fas fa-cash-register"></i> Sales</a></li>
                 <li><a href="admin-products.php" ><i class="fas fa-box"></i> Products</a></li>
-                <li class="dropdown open">
-                    <li class="dropdown ">
+              <li class="dropdown open">
+    <a href="#" class="dropdown-toggle">
+        <i class="fas fa-warehouse"></i> Inventory
+        <i class="fas fa-caret-down caret-icon" style="float: right;"></i>
+    </a>
+    <ul class="dropdown-menu">
+        <li><a href="admin-inventory.php">Inventory Management</a></li>
+        ...
+    </ul>
+</li>
+
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle">
+        <i class="fas fa-truck"></i> Suppliers
+        <i class="fas fa-caret-down caret-icon" style="float: right;"></i>
+    </a>
+    <ul class="dropdown-menu">
+        ...
+    </ul>
+</li>
+
                         <a href="#" class="dropdown-toggle">
                             <i class="fas fa-warehouse"></i> Inventory
                             <i class="fas fa-caret-down caret-icon" style="float: right;"></i>
@@ -187,17 +222,16 @@ if ($new_sales_result && $new_sales_result->num_rows > 0) {
                     </ul>
                 </li>
                 <li><a href="sales-report.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                <li><a href="admin-logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
     </aside>
 
     <div id="main-content">
         <header class="main-header">
             <h2>Admin Stats</h2>
-            <div class="header-actions">
-                <button class="action-btn"><i class="fas fa-edit"></i> Edit</button>
-                <button class="action-btn primary-btn"><i class="fas fa-plus"></i> Add Widget</button>
-            </div>
+           
+              
+        
         </header>
 
         <main>

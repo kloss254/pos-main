@@ -18,19 +18,56 @@
 }
 
 
-        .product-card img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-        .product-card button {
-            margin-top: 10px;
-            background-color: #2d89ef;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
+       .product-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    text-align: center;
+    padding: 0;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.03);
+}
+
+.product-image-container {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image-container img {
+    transform: scale(1.05);
+}
+
+.product-info {
+    padding: 12px 10px;
+    background-color: #fff;
+}
+
+.product-info .product-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.product-info .product-price {
+    color: #2d89ef;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
         }
         .payment-method-btn.active {
             background-color: #2d89ef;
@@ -229,8 +266,10 @@ body {
                 <li><a href="cashier-dashboard.php" class="sidebar-link active"><i class="fas fa-box"></i> Products</a></li>
                 <li><a href="cashier-orders.php" class="sidebar-link " ><i class="fas fa-receipt"></i> Orders</a></li>
                 <li><a href="cashier-sales.php" class="sidebar-link"><i class="fas fa-cash-register"></i> Sales</a></li>
-                <li><a href="#" class="sidebar-link"><i class="fas fa-calculator"></i> Accounting</a></li>
-                <li><a href="#" class="sidebar-link"><i class="fas fa-cog"></i> Settings</a></li>
+             <li><a href="cashier-barcode.php" class="sidebar-link"><i class="fas fa-barcode"></i> Barcode</a></li>
+
+             <li><a href="logout.php" class="sidebar-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+
                 </ul>
             </nav>
             <div class="user-cards">
@@ -293,7 +332,7 @@ body {
                                 <input type="number" id="order-qty" min="1" value="1" />
                                 <label for="order-discount">Discount:</label>
                                 <input type="number" id="order-discount" min="0" value="0" />
-                                <input type="text" id="barcode-input" placeholder="Scan or enter barcode" autofocus />
+                               
 
                             </div>
                             <div class="cart-summary-line">
@@ -372,17 +411,19 @@ body {
                     productCard.setAttribute('data-name', product.product_name.toLowerCase());
 
                     productCard.innerHTML = `
-                        <div class="product-image-container">
-                           <img src="${product.image}" alt="${product.product_name}" onerror="this.src='placeholder.jpg'" />
+                       <div class="product-image-container">
+    <img src="${product.image}" alt="${product.product_name}" onerror="this.src='placeholder.jpg'" />
+</div>
+<div class="product-info">
+    <div class="product-name">${product.product_name}</div>
+    <div class="product-price">Ksh ${product.price}</div>
+    <button class="add-to-cart-btn"
+        data-id="${product.id}" 
+        data-name="${product.product_name}" 
+        data-price="${product.price}" 
+        data-tax="${product.tax}">Add</button>
+</div>
 
-                            <div class="product-name-overlay">${product.product_name}</div>
-                        </div>
-                        <p>Ksh ${product.price}</p>
-                        <button class="add-to-cart-btn" 
-                            data-id="${product.id}" 
-                            data-name="${product.product_name}" 
-                            data-price="${product.price}" 
-                            data-tax="${product.tax}">Add</button>
                     `;
 
                     productList.appendChild(productCard);
@@ -461,6 +502,26 @@ body {
             }
         });
     });
+document.getElementById("barcode-input").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        const barcode = this.value.trim();
+        fetch(`get_product_by_barcode.php?barcode=${barcode}`)
+            .then(res => res.json())
+            .then(product => {
+                if (product.error) {
+                    alert(product.error);
+                } else {
+                    addProductToCart(product);
+                }
+                this.value = ""; // Clear input
+            })
+            .catch(err => {
+                console.error("Error fetching product:", err);
+            });
+    }
+});
+
+
 
     document.querySelector('[data-method="Cash"]').addEventListener('click', () => {
         const totalText = document.getElementById('total-cashier').textContent.replace('Ksh', '').trim();
@@ -480,13 +541,17 @@ body {
 
     document.getElementById('mpesa-pay-btn').addEventListener('click', () => {
         const phone = document.getElementById('customer-phone').value.trim();
-        const totalText = document.getElementById('total-cashier').textContent.replace(/[^\d.]/g, '');
-        const amount = parseFloat(totalText);
+const totalText = document.getElementById('total-cashier').textContent;
+const match = totalText.match(/[\d,.]+/);
+const amount = match ? parseFloat(match[0].replace(',', '')) : 0;
+
+      
 
         if (!phone || isNaN(amount) || amount <= 0) {
             alert("Enter valid phone number and total amount.");
             return;
         }
+console.log("Sending STK:", { phone, amount });
 
         fetch('stk.php', {
             method: 'POST',

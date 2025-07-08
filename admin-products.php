@@ -72,7 +72,13 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
         table { width: 100%; border-collapse: collapse; }
         table th, table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         .action-buttons button { margin: 2px; }
-        img { max-width: 50px; }
+        .product-image { 
+            width: 80px; 
+            height: 80px; 
+            object-fit: cover; 
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         input[type="text"], input[type="number"] { width: 150px; padding: 5px; }
         .dropdown { position: relative; }
         .dropdown ul { left: 20px; top: 100%; background: #f8f8f8; list-style: none; padding: 5px; }
@@ -129,6 +135,56 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
             background-color: #3e556e;
             color: #fff;
         }
+        
+        /* Custom file input styling */
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background: #2980b9;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-name {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .image-preview-container {
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .image-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -182,13 +238,25 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
         <main>
             <section id="products">
                 <h2>Add New Product</h2>
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="addProductForm">
                     <input type="text" name="product_name" placeholder="Product Name" required />
-                    <input type="number" name="price" placeholder="Price" required />
+                    <input type="number" name="price" placeholder="Price" step="0.01" required />
                     <input type="number" name="stock" placeholder="Stock" required />
-                    <input type="number" name="tax" placeholder="Tax %" required />
+                    <input type="number" name="tax" placeholder="Tax %" step="0.01" required />
                     <input type="text" name="barcode" placeholder="Barcode (optional)" />
-                    <input type="file" name="image" accept="image/*" />
+                    
+                    <div class="file-input-container">
+                        <label for="add-product-image" class="file-input-label">
+                            <i class="fas fa-image"></i> Choose Image
+                        </label>
+                        <input type="file" name="image" id="add-product-image" class="file-input" accept="image/*">
+                        <span id="add-file-name" class="file-name">No file chosen</span>
+                    </div>
+                    
+                    <div class="image-preview-container">
+                        <img id="add-image-preview" class="image-preview" alt="Image preview">
+                    </div>
+                    
                     <button type="submit" name="add_product">Add Product</button>
                 </form>
 
@@ -210,23 +278,33 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
                     <tbody>
                         <?php $i = 1; while ($row = $result->fetch_assoc()): ?>
                             <tr>
-                                <form method="POST" enctype="multipart/form-data">
+                                <form method="POST" enctype="multipart/form-data" class="product-form">
                                     <td><?= $i++ ?></td>
                                     <td><input type="text" name="product_name" value="<?= htmlspecialchars($row['product_name']) ?>"></td>
-                                    <td><input type="number" name="price" value="<?= $row['price'] ?>"></td>
-                                    <td><input type="number" name="tax" value="<?= $row['tax'] ?>"></td>
+                                    <td><input type="number" name="price" value="<?= $row['price'] ?>" step="0.01"></td>
+                                    <td><input type="number" name="tax" value="<?= $row['tax'] ?>" step="0.01"></td>
                                     <td><input type="number" name="stock" value="<?= $row['stock'] ?>"></td>
                                     <td><input type="text" name="barcode" value="<?= htmlspecialchars($row['barcode']) ?>"></td>
                                     <td>
-                                        <img src="<?= $row['image'] ?>" alt="Image">
-                                        <input type="file" name="image">
+                                        <img src="<?= $row['image'] ?>" class="product-image" alt="Product Image">
+                                        
+                                        <div class="file-input-container" style="margin-top: 5px;">
+                                            <label for="image-<?= $row['id'] ?>" class="file-input-label" style="padding: 5px 10px; font-size: 0.8em;">
+                                                <i class="fas fa-sync-alt"></i> Change
+                                            </label>
+                                            <input type="file" name="image" id="image-<?= $row['id'] ?>" class="file-input" accept="image/*">
+                                        </div>
+                                        
+                                        <div class="image-preview-container">
+                                            <img id="preview-<?= $row['id'] ?>" class="image-preview" alt="Image preview">
+                                        </div>
                                     </td>
                                     <td><?= $row['created_at'] ?></td>
                                     <td class="action-buttons">
                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                        <button type="submit" name="update_product">Update</button>
+                                        <button type="submit" name="update_product" class="update-btn">Update</button>
                                         <a href="?delete=<?= $row['id'] ?>" onclick="return confirm('Delete this product?')">
-                                            <button type="button">Delete</button>
+                                            <button type="button" class="delete-btn">Delete</button>
                                         </a>
                                     </td>
                                 </form>
@@ -241,6 +319,7 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Dropdown menu functionality
         const toggles = document.querySelectorAll(".dropdown-toggle");
         toggles.forEach(toggle => {
             toggle.addEventListener("click", function (e) {
@@ -254,6 +333,51 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
                     }
                 });
             });
+        });
+        
+        // File input handling for add product form
+        const addProductImageInput = document.getElementById('add-product-image');
+        const addFileNameSpan = document.getElementById('add-file-name');
+        const addImagePreview = document.getElementById('add-image-preview');
+        
+        if (addProductImageInput) {
+            addProductImageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    addFileNameSpan.textContent = this.files[0].name;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        addImagePreview.src = e.target.result;
+                        addImagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    addFileNameSpan.textContent = 'No file chosen';
+                    addImagePreview.style.display = 'none';
+                }
+            });
+        }
+        
+        // File input handling for edit product forms
+        document.querySelectorAll('.product-form').forEach(form => {
+            const fileInput = form.querySelector('.file-input');
+            const previewId = 'preview-' + form.querySelector('input[name="id"]').value;
+            const imagePreview = document.getElementById(previewId);
+            
+            if (fileInput && imagePreview) {
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(this.files[0]);
+                    } else {
+                        imagePreview.style.display = 'none';
+                    }
+                });
+            }
         });
     });
 </script>
