@@ -14,15 +14,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = (int)$_POST['user_id'];
     $discounts = (int)$_POST['discounts'];
 
-    $stmt = $conn->prepare("INSERT INTO orders (product_id, customer_name, customer_phone, quantity, payment_method, user_id, discounts) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("issisis", $product_id, $customer_name, $customer_phone, $quantity, $payment_method, $user_id, $discounts);
+    // Insert into orders
+    $stmt = $conn->prepare("INSERT INTO orders (customer_name, customer_phone, payment_method, user_id, discount_amount) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssii", $customer_name, $customer_phone, $payment_method, $user_id, $discounts);
+    $stmt->execute();
+    $order_id = $stmt->insert_id;
+    $stmt->close();
+
+    // Insert into order_items
+    $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, discount) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("iiii", $order_id, $product_id, $quantity, $discounts);
     $stmt->execute();
     $stmt->close();
+
     $conn->close();
 
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>POS System Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body, html {
             height: 100%;
@@ -360,43 +372,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                $where = $filters ? "WHERE " . implode(" AND ", $filters) : "";
 $result = $conn->query("
-    SELECT o.*, oi.product_id, oi.quantity, oi.discount, p.product_name, p.price, p.tax, p.image 
+    
+    SELECT 
+        o.id AS order_id, 
+        o.customer_name, 
+        o.customer_phone, 
+        o.payment_method, 
+        o.user_id,
+        o.discount_amount AS discounts,
+        oi.quantity, 
+        oi.product_id,
+        p.product_name, 
+        p.price, 
+        p.tax
     FROM orders o
     JOIN order_items oi ON o.id = oi.order_id
     JOIN products p ON oi.product_id = p.id
-    $where
     ORDER BY o.created_at DESC
 ");
 
-                                $total_revenue = 0;
-                                $total_tax_sum = 0;
-                                $order_count = 0;
+                               $total_revenue = 0;
+$total_tax_sum = 0;
+$order_count = 0;
 
-                                while ($row = $result->fetch_assoc()) {
-                                    $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
-                                    $total_tax = $row['quantity'] * $row['tax'];
-                                    $total_revenue += $total_price;
-                                    $total_tax_sum += $total_tax;
-                                    $order_count++;
+while ($row = $result->fetch_assoc()) {
+    $total_price = ($row['quantity'] - $row['discounts']) * $row['price'];
+    $total_tax = $row['quantity'] * $row['tax'];
+    $total_revenue += $total_price;
+    $total_tax_sum += $total_tax;
+    $order_count++;
 
-                                    echo "<tr>
-                                        <td>{$row['order_id']}</td>
-                                        <td>{$row['product_name']}</td>
-                                        <td>{$row['customer_name']}</td>
-                                        <td>{$row['customer_phone']}</td>
-                                        <td>{$row['quantity']}</td>
-                                        <td>{$row['payment_method']}</td>
-                                        <td>{$row['user_id']}</td>
-                                        <td>{$row['discounts']}</td>
-                                        <td>{$row['product_name']}</td>
-                                        <td>{$row['price']}</td>
-                                        <td>{$row['tax']}%</td>
-                                        <td>{$total_price}</td>
-                                        <td>{$total_tax}</td>
-                                        <td><img src='uploads/{$row['image']}' style='width:40px;'></td>
-                                        <td>{$row['created_at']}</td>
-                                    </tr>";
-                                }
+    echo "<tr>
+        <td>{$row['order_id']}</td>
+        <td>{$row['product_name']}</td>
+        <td>{$row['customer_name']}</td>
+        <td>{$row['customer_phone']}</td>
+        <td>{$row['quantity']}</td>
+        <td>{$row['payment_method']}</td>
+        <td>{$row['user_id']}</td>
+        <td>{$row['discounts']}</td>
+        <td>{$row['product_name']}</td>
+        <td>KES " . number_format($row['price'], 2) . "</td>
+        <td>{$row['tax']}%</td>
+    </tr>";
+}
+
+                                
 
                                 echo "<tr style='font-weight:bold; background:#f0f0f0;'>
                                     <td colspan='11' style='text-align:right;'>Total Revenue:</td>

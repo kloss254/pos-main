@@ -23,7 +23,14 @@ foreach ($weekDays as $day) {
     $dailyBestProduct[$day] = ["product" => "", "revenue" => 0];
 }
 
-$sql = "SELECT o.*, p.product_name, p.price FROM orders o JOIN products p ON o.product_id = p.id";
+$sql = "
+SELECT oi.*, p.product_name, p.price, o.created_at, o.payment_method
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+JOIN products p ON oi.product_id = p.id
+";
+
+
 $result = $conn->query($sql);
 
 while ($row = $result->fetch_assoc()) {
@@ -94,6 +101,8 @@ $conn->close();
   <title>Weekly Sales Report</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       font-family: Arial, sans-serif;

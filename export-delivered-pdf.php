@@ -25,7 +25,7 @@ $where = "WHERE " . implode(" AND ", $filters);
 
 $sql = "SELECT o.*, p.product_name, p.price, p.tax, p.image 
         FROM orders o 
-        JOIN products p ON o.product_id = p.id 
+        JOIN products p ON o.id = p.id 
         $where ORDER BY o.created_at DESC";
 $result = $conn->query($sql);
 
@@ -65,7 +65,7 @@ while ($row = $result->fetch_assoc()) {
 
     $values = [
         $row['order_id'],
-        $row['product_id'],
+        $row['id'],
         $row['customer_name'],
         $row['customer_phone'],
         $row['quantity'],

@@ -1,45 +1,61 @@
 <?php
 require('fpdf/fpdf.php');
 
+// Database connection
 $conn = new mysqli("localhost", "root", "", "pos");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Get order ID
 $order_id = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 if ($order_id <= 0) {
     die("Invalid order ID");
 }
 
-// Fetch the order
-$order_result = $conn->query("SELECT * FROM orders WHERE order_id = $order_id");
+// Prepare query
+$stmt = $conn->prepare("
+    SELECT 
+        o.id AS order_id,
+        o.customer_name,
+        o.customer_phone,
+        o.payment_method,
+        o.created_at,
+        o.status,
+        oi.quantity,
+        oi.discount,
+        oi.product_id,
+        p.product_name,
+        p.price,
+        p.tax
+    FROM orders o
+    LEFT JOIN order_items oi ON oi.order_id = o.id
+    LEFT JOIN products p ON oi.product_id = p.id
+    WHERE o.id = ?
+");
+
+$stmt->bind_param("i", $order_id);
+$stmt->execute();
+$order_result = $stmt->get_result();
+
 if ($order_result->num_rows == 0) {
     die("Order not found");
 }
+
 $order = $order_result->fetch_assoc();
 
-// Fetch product info
-$product_name = "Unknown";
-$product_price = 0;
-$product_result = $conn->query("SELECT product_name, price, tax FROM products WHERE id = " . (int)$order['product_id']);
-if ($product_result->num_rows > 0) {
-    $product = $product_result->fetch_assoc();
-    $product_name = $product['product_name'];
-    $product_price = $product['price'];
-    $product_tax_rate = $product['tax'] ?? 0.05; // fallback to 5%
-} else {
-    $product_tax_rate = 0.05;
-}
-
-// Compute values
+// Assign product and financial data
+$product_name = $order['product_name'] ?? 'Unknown';
+$product_price = $order['price'] ?? 0;
+$product_tax_rate = $order['tax'] ?? 0.05;
 $quantity = (int)$order['quantity'];
-$discount = (float)$order['discounts'];
-
+$discount = (float)$order['discount'];
 $subtotal = $product_price * $quantity;
 $total_tax = $subtotal * $product_tax_rate;
 $total_after_discount = $subtotal - $discount;
 $grand_total = $total_after_discount + $total_tax;
 
+// PDF Class
 class PDF extends FPDF {
     function Header() {
         $this->SetFont('Arial', 'B', 16);
@@ -81,14 +97,14 @@ class PDF extends FPDF {
         $this->Cell(60, 10, 'Discount:', 1, 0, 'L', true);
         $this->Cell(130, 10, 'Ksh ' . number_format($discount, 2), 1, 1);
 
-        $this->Cell(60, 10, 'Tax (5%):', 1, 0, 'L', true);
+        $this->Cell(60, 10, 'Tax ('.($order['tax'] * 100).'%)', 1, 0, 'L', true);
         $this->Cell(130, 10, 'Ksh ' . number_format($total_tax, 2), 1, 1);
 
         $this->SetFont('Arial', 'B', 12);
         $this->Cell(60, 10, 'Total Payable:', 1, 0, 'L', true);
         $this->Cell(130, 10, 'Ksh ' . number_format($grand_total, 2), 1, 1);
-        $this->SetFont('Arial', '', 12);
 
+        $this->SetFont('Arial', '', 12);
         $this->Cell(60, 10, 'Payment Method:', 1, 0, 'L', true);
         $this->Cell(130, 10, $order['payment_method'], 1, 1);
 
@@ -104,6 +120,7 @@ class PDF extends FPDF {
     }
 }
 
+// Generate PDF
 $pdf = new PDF();
 $pdf->AddPage();
 $pdf->OrderDetails($order, $product_name, $product_price, $subtotal, $discount, $total_tax, $grand_total);

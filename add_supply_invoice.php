@@ -67,6 +67,8 @@ $products = $conn->query("SELECT id, product_name FROM products");
     <title>Add Supply Invoice</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; }
         #wrapper { display: flex; }

@@ -68,6 +68,8 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
     <title>POS System Dashboard</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         table { width: 100%; border-collapse: collapse; }
         table th, table td { border: 1px solid #ddd; padding: 8px; text-align: center; }

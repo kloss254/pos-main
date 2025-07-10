@@ -34,7 +34,7 @@ $where = "WHERE " . implode(" AND ", $filters);
 $sql = "
     SELECT o.*, p.product_name, p.price, p.tax, p.image 
     FROM orders o
-    JOIN products p ON o.product_id = p.id
+    JOIN products p ON o.id = p.id
     $where
     ORDER BY o.created_at DESC
 ";

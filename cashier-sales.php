@@ -6,18 +6,34 @@ if ($conn->connect_error) {
 
 $searchTerm = $_GET['search'] ?? '';
 $sql = "
-  SELECT o.*, p.product_name 
+  SELECT 
+    o.id AS order_id,
+    o.customer_name,
+    o.customer_phone,
+    o.payment_method,
+    o.created_at,
+    o.status,
+    oi.quantity,
+    oi.discount,
+    p.product_name,
+    p.price,
+    p.tax
   FROM orders o
-  LEFT JOIN products p ON o.product_id = p.id
+  LEFT JOIN order_items oi ON oi.order_id = o.id
+  LEFT JOIN products p ON oi.product_id = p.id
   WHERE o.status = 'delivered'
 ";
 
+// If search term is provided, append filtering conditions
 if (!empty($searchTerm)) {
     $searchTermEscaped = "%" . $conn->real_escape_string($searchTerm) . "%";
     $sql .= " AND (o.customer_name LIKE '$searchTermEscaped' OR o.customer_phone LIKE '$searchTermEscaped')";
 }
 
-$sql .= " ORDER BY created_at DESC";
+// Final ordering
+$sql .= " ORDER BY o.created_at DESC";
+
+
 $deliveredOrders = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -28,6 +44,8 @@ $deliveredOrders = $conn->query($sql);
   <title>Delivered Orders</title>
   <link rel="stylesheet" href="cashier-styles.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
@@ -194,7 +212,7 @@ $deliveredOrders = $conn->query($sql);
           <td><?= $row['customer_phone'] ?></td>
           <td><?= $row['quantity'] ?></td>
           <td><?= $row['payment_method'] ?></td>
-          <td><?= $row['discounts'] ?></td>
+          <td><?= $row['discount'] ?></td>
           <td><?= $row['created_at'] ?></td>
           <td><?= $row['status'] ?></td>
           <td>

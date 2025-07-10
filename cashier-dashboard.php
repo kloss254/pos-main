@@ -6,6 +6,8 @@
     <title>POS Cashier Terminal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="cashier-styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         #cashier-app {
     display: flex;
@@ -288,7 +290,8 @@ body {
                     </div>
                 </div>
             </div>
-            <a href="#" onclick="logout()" class="sidebar-logout" id="cashier-logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    <a href="logout.php" class="sidebar-logout" id="cashier-logout-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+
         </aside>
 
         <main class="cashier-main-content">
@@ -358,7 +361,7 @@ body {
                         </div>
 
                         <div class="checkout-actions">
-                            <button id="cashier-checkout-btn" class="complete-sale-btn"></i> Complete Sale</button>
+                            <button id="cashier-checkout-btn" class="complete-sale-btn"></i> Checkout</button>
                         </div>
                     </div>
                 </div>
@@ -377,7 +380,14 @@ body {
         const quantity = parseInt(document.getElementById('order-qty').value) || 1;
         const discount = parseInt(document.getElementById('order-discount').value) || 0;
 
-        cart.push({ product_id, name, price, tax, quantity, discount });
+       const existing = cart.find(p => p.product_id === product_id);
+if (existing) {
+    existing.quantity += quantity;
+    existing.discount += discount;
+} else {
+    cart.push({ product_id, name, price, tax, quantity, discount });
+}
+
         updateCartUI();
     }
 
@@ -389,7 +399,13 @@ body {
             const lineTotal = (item.price * item.quantity) - item.discount;
             subtotal += lineTotal;
             const li = document.createElement('li');
-            li.textContent = `${item.name} x${item.quantity} - Ksh${lineTotal.toFixed(2)} (Discount: Ksh${item.discount})`;
+            li.innerHTML = `
+    <strong>${item.name}</strong><br>
+    Qty: ${item.quantity} @ Ksh${item.price} <br>
+    Discount: Ksh${item.discount} <br>
+    <strong>Total: Ksh${lineTotal.toFixed(2)}</strong>
+`;
+
             cartList.appendChild(li);
         });
         const tax = subtotal * 0.05;
@@ -475,103 +491,108 @@ body {
         updateCartUI();
     });
 
-    document.getElementById('cashier-checkout-btn').addEventListener('click', () => {
-        const customer_name = document.getElementById('customer-name').value.trim();
-        const customer_phone = document.getElementById('customer-phone').value.trim();
-        const payment_method = document.querySelector('.payment-method-btn.active')?.dataset.method;
-        const user_id = 1;
+    let selectedPaymentMethod = "Cash"; // default
 
-        if (!customer_name || !customer_phone || cart.length === 0) {
-            alert("Please fill in customer details and cart before checkout.");
-            return;
-        }
-
-        fetch('submit_order.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ customer_name, customer_phone, payment_method, user_id, cart })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert("Order completed successfully!");
-                cart = [];
-                updateCartUI();
-                document.getElementById('customer-name').value = '';
-                document.getElementById('customer-phone').value = '';
-            }
-        });
+document.querySelectorAll('.payment-method-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedPaymentMethod = this.dataset.method; // update selected payment method
     });
-document.getElementById("barcode-input").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        const barcode = this.value.trim();
-        fetch(`get_product_by_barcode.php?barcode=${barcode}`)
-            .then(res => res.json())
-            .then(product => {
-                if (product.error) {
-                    alert(product.error);
-                } else {
-                    addProductToCart(product);
-                }
-                this.value = ""; // Clear input
-            })
-            .catch(err => {
-                console.error("Error fetching product:", err);
-            });
+});
+
+document.querySelector('[data-method="Cash"]').addEventListener('click', () => {
+    const totalText = document.getElementById('total-cashier').textContent.replace('Ksh', '').trim();
+    const totalAmount = parseFloat(totalText);
+
+    const amountPaid = prompt(`Customer's Total is Ksh${totalAmount}. Enter amount paid:`);
+
+    if (amountPaid !== null && !isNaN(amountPaid)) {
+        const change = parseFloat(amountPaid) - totalAmount;
+        if (change < 0) {
+            alert(`Insufficient amount. Customer still owes Ksh${Math.abs(change).toFixed(2)}`);
+        } else {
+            alert(`Payment accepted.\nChange to return: Ksh${change.toFixed(2)}`);
+            triggerCheckout(); // trigger order submission
+        }
     }
 });
 
+document.getElementById('mpesa-pay-btn').addEventListener('click', () => {
+    const phone = document.getElementById('customer-phone').value.trim();
+    const totalText = document.getElementById('total-cashier').textContent;
+    const match = totalText.match(/[\d,.]+/);
+    const amount = match ? parseFloat(match[0].replace(',', '')) : 0;
 
+    if (!phone || isNaN(amount) || amount <= 0) {
+        alert("Enter valid phone number and total amount.");
+        return;
+    }
 
-    document.querySelector('[data-method="Cash"]').addEventListener('click', () => {
-        const totalText = document.getElementById('total-cashier').textContent.replace('Ksh', '').trim();
-        const totalAmount = parseFloat(totalText);
+    console.log("Sending STK:", { phone, amount });
 
-        const amountPaid = prompt(`Customer's Total is Ksh${totalAmount}. Enter amount paid:`);
-
-        if (amountPaid !== null && !isNaN(amountPaid)) {
-            const change = parseFloat(amountPaid) - totalAmount;
-            if (change < 0) {
-                alert(`Insufficient amount. Customer still owes Ksh${Math.abs(change).toFixed(2)}`);
-            } else {
-                alert(`Payment accepted.\nChange to return: Ksh${change.toFixed(2)}`);
-            }
+    fetch('stk.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, amount })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ResponseCode === "0") {
+            alert("M-Pesa STK Push sent. Enter your PIN to confirm.");
+            setTimeout(triggerCheckout, 5000); // optional delay before confirming order
+        } else {
+            alert("STK Push failed: " + (data.errorMessage || 'Unknown error.'));
         }
+    })
+    .catch(err => {
+        alert("Failed to reach backend.");
+        console.error(err);
     });
+});
 
-    document.getElementById('mpesa-pay-btn').addEventListener('click', () => {
-        const phone = document.getElementById('customer-phone').value.trim();
-const totalText = document.getElementById('total-cashier').textContent;
-const match = totalText.match(/[\d,.]+/);
-const amount = match ? parseFloat(match[0].replace(',', '')) : 0;
+function triggerCheckout() {
+    const customer_name = document.getElementById('customer-name').value.trim();
+    const customer_phone = document.getElementById('customer-phone').value.trim();
+    const user_id = 1;
 
-      
+    if (!customer_name || !customer_phone || cart.length === 0) {
+        alert("Please fill in customer details and cart before checkout.");
+        return;
+    }
 
-        if (!phone || isNaN(amount) || amount <= 0) {
-            alert("Enter valid phone number and total amount.");
-            return;
+    fetch('submit_order.php', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        customer_name,
+        customer_phone,
+        payment_method: selectedPaymentMethod,
+        user_id,
+        cart
+    })
+})
+
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert("Order completed successfully!");
+            cart = [];
+            updateCartUI();
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-phone').value = '';
+        } else {
+            alert("Order failed.");
         }
-console.log("Sending STK:", { phone, amount });
-
-        fetch('stk.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, amount })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ResponseCode === "0") {
-                alert("M-Pesa STK Push sent successfully. Enter PIN on your phone.");
-            } else {
-                alert("STK Push failed: " + (data.errorMessage || 'Unknown error.'));
-                console.error(data);
-            }
-        })
-        .catch(err => {
-            alert("Failed to reach backend.");
-            console.error(err);
-        });
+    })
+    .catch(err => {
+        console.error("Error submitting order:", err);
     });
+}
+document.getElementById('cashier-checkout-btn').addEventListener('click', triggerCheckout);
+
 </script>
 
 

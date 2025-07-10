@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id']) && isset(
 
     if ($new_status === 'delivered') {
         // Get product_id and quantity for this order
-        $result = $conn->query("SELECT product_id, quantity FROM orders WHERE order_id = $order_id");
+        $result = $conn->query("SELECT product_id, quantity FROM order_items WHERE order_id = $order_id");
         if ($result && $result->num_rows > 0) {
             $order = $result->fetch_assoc();
             $product_id = (int)$order['product_id'];
@@ -22,24 +22,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id']) && isset(
     }
 
     // Update the order status
-    $conn->query("UPDATE orders SET status = '$new_status' WHERE order_id = $order_id");
+    $conn->query("UPDATE orders SET status = '$new_status' WHERE id = $order_id");
 
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
 
 function fetchOrdersByStatus($status, $conn) {
-    $stmt = $conn->prepare("
-        SELECT o.*, p.product_name, p.tax, p.price
-        FROM orders o
-        LEFT JOIN products p ON o.product_id = p.id
-        WHERE o.status = ?
-        ORDER BY o.created_at DESC
-    ");
+    $sql = "
+        SELECT 
+            orders.id AS order_id, 
+            orders.customer_name, 
+            orders.customer_phone, 
+            orders.payment_method, 
+            orders.created_at, 
+            orders.status,
+            order_items.quantity, 
+            order_items.discount,
+            products.product_name, 
+            products.tax, 
+            products.price
+        FROM orders
+        LEFT JOIN order_items ON order_items.order_id = orders.id
+        LEFT JOIN products ON products.id = order_items.product_id
+        WHERE orders.status = ?
+        ORDER BY orders.created_at DESC
+    ";
+
+    $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $status);
     $stmt->execute();
     return $stmt->get_result();
 }
+
 
 $pendingOrders = fetchOrdersByStatus('pending', $conn);
 $deliveredOrders = fetchOrdersByStatus('delivered', $conn);
@@ -53,6 +68,8 @@ $cancelledOrders = fetchOrdersByStatus('cancelled', $conn);
   <title>Order Status Management</title>
   <link rel="stylesheet" href="cashier-styles.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     * { box-sizing: border-box; }
     body {
@@ -168,7 +185,7 @@ $cancelledOrders = fetchOrdersByStatus('cancelled', $conn);
         while ($row = $orders->fetch_assoc()) {
             $quantity = $row['quantity'];
             $price = $row['price'];
-            $discount = $row['discounts'];
+            $discount = $row['discount'];
             $tax = $row['tax'];
 
             $subtotal = ($quantity - $discount) * $price;
@@ -180,7 +197,7 @@ $cancelledOrders = fetchOrdersByStatus('cancelled', $conn);
                 <td>{$row['customer_phone']}</td>
                 <td>{$row['quantity']}</td>
                 <td>{$row['payment_method']}</td>
-                <td>{$row['discounts']}</td>
+                <td>{$row['discount']}</td>
                 <td>{$row['created_at']}</td>
                 <td>{$row['status']}</td>
                 <td>KES " . number_format($subtotal, 2) . "</td>
